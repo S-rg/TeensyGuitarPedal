@@ -14,9 +14,9 @@ Pedalboard::Pedalboard() {}
 void Pedalboard::begin() {
     AudioAmplifier dummyNode;
 
-    cTone[0] = new AudioConnection(input, tone[0]);
+    cTone[0] = new AudioConnection(input, 1, tone[0], 1);
     for (int i = 0; i < NUM_TONE_BANDS - 1; i++) {
-        cTone[i + 1] = new AudioConnection(tone[i], tone[i + 1]);
+        cTone[i + 1] = new AudioConnection(tone[i], 1, tone[i + 1], 1);
     }
 
     slot1 = new EffectSlot(&input, &dummyNode);
