@@ -12,17 +12,17 @@ const char *Pedalboard::effectTypeNames[] = {"Distortion", "Reverb", "Delay",
 Pedalboard::Pedalboard() {}
 
 void Pedalboard::begin() {
-    AudioAmplifier dummyNode;
+    // AudioAmplifier dummyNode;
 
     cTone[0] = new AudioConnection(input, 1, tone[0], 0);
     for (int i = 0; i < NUM_TONE_BANDS - 1; i++) {
         cTone[i + 1] = new AudioConnection(tone[i], 0, tone[i + 1], 0);
     }
 
-    slot1 = new EffectSlot(&input, &dummyNode);
-    slot2 = new EffectSlot(&dummyNode, &dummyNode);
-    slot3 = new EffectSlot(&dummyNode, &dummyNode);
-    slot4 = new EffectSlot(&dummyNode, &output);
+    slot1 = new EffectSlot(nullptr, nullptr);
+    slot2 = new EffectSlot(nullptr, nullptr);
+    slot3 = new EffectSlot(nullptr, nullptr);
+    slot4 = new EffectSlot(nullptr, nullptr);
 
     slot1->initialize(&tone[NUM_TONE_BANDS - 1], &slot2->bypass);
     slot2->initialize(&slot1->bypass, &slot3->bypass);

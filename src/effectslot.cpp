@@ -5,7 +5,7 @@
 
 EffectSlot::EffectSlot(AudioStream *in, AudioStream *out)
     : input(in), outputNode(out) {
-    setBypass();
+    // setBypass();
 }
 
 void EffectSlot::initialize(AudioStream *in, AudioStream *out) {
