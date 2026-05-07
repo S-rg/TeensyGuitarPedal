@@ -1,0 +1,5 @@
+.venv/
+.clang-format
+compile_commands.json
+.cache/
+.pio/
