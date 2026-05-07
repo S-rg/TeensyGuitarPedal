@@ -1,5 +1,6 @@
 #include "PedalBoard.h"
 #include "buttons.h"
+#include "pins.h"
 #include "screen.h"
 #include "settings.h"
 #include <Audio.h>
@@ -12,7 +13,8 @@ void setup() {
     AudioMemory(20);
     pedal.begin();
     setup_screen();
-    setup_buttons(2, 3, 4, 5, 6, 7, 8, 9, 10);
+    setup_buttons(B1PIN, B2PIN, ENCAPIN, ENCBPIN, ENCSWPIN, P1PIN, P2PIN, P3PIN,
+                  P4PIN);
 
     clear_screen();
 }
