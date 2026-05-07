@@ -35,14 +35,8 @@ class EffectSlot {
     int currentValue;
 
     EffectSlot(AudioStream *in, AudioStream *out);
-
-    void setIn(AudioStream *in);
-    void setOut(AudioStream *out);
     void initialize(AudioStream *in, AudioStream *out);
-
-    void selectEffect(EffectType fx, float value);
     void applyEffect(EffectType typeIndex, int value);
-
     AudioStream &output();
 
   private:

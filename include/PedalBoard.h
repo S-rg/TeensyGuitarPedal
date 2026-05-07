@@ -8,7 +8,6 @@
 class Pedalboard {
   public:
     Pedalboard();
-    Pedalboard(PresetData p);
     ~Pedalboard();
 
     void begin();
