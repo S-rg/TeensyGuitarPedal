@@ -27,6 +27,9 @@ class Pedalboard {
     EffectSlot *getSlot(int index);
 
   private:
+    AudioAmplifier finalOut;
+    AudioConnection *cFinalOut;
+
     static constexpr int NUM_TONE_BANDS = 10;
     static constexpr float SAMPLE_RATE = 44100.0f;
 

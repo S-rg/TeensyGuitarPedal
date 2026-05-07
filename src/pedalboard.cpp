@@ -14,9 +14,9 @@ Pedalboard::Pedalboard() {}
 void Pedalboard::begin() {
     AudioAmplifier dummyNode;
 
-    cTone[0] = new AudioConnection(input, 1, tone[0], 1);
+    cTone[0] = new AudioConnection(input, 1, tone[0], 0);
     for (int i = 0; i < NUM_TONE_BANDS - 1; i++) {
-        cTone[i + 1] = new AudioConnection(tone[i], 1, tone[i + 1], 1);
+        cTone[i + 1] = new AudioConnection(tone[i], 0, tone[i + 1], 0);
     }
 
     slot1 = new EffectSlot(&input, &dummyNode);
@@ -27,7 +27,10 @@ void Pedalboard::begin() {
     slot1->initialize(&tone[NUM_TONE_BANDS - 1], &slot2->bypass);
     slot2->initialize(&slot1->bypass, &slot3->bypass);
     slot3->initialize(&slot2->bypass, &slot4->bypass);
-    slot4->initialize(&slot3->bypass, &output);
+    slot4->initialize(&slot3->bypass, &finalOut);
+
+    cFinalOut = new AudioConnection(finalOut, 0, output, 1);
+    finalOut.gain(1.0f);
 
     for (int i = 0; i < NUM_TONE_BANDS; i++) {
         toneGains[i] = 0.0f;

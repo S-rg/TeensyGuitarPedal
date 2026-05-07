@@ -28,8 +28,8 @@ void EffectSlot::clearConnections() {
 void EffectSlot::setDistortion(float value) {
     clearConnections();
 
-    patchIn = new AudioConnection(*input, 1, distortion, 1);
-    patchOut = new AudioConnection(distortion, 1, *outputNode, 1);
+    patchIn = new AudioConnection(*input, 0, distortion, 0);
+    patchOut = new AudioConnection(distortion, 0, *outputNode, 0);
 
     static float curve[256];
     float drive = 1.0f + value * 20.0f;
@@ -46,16 +46,16 @@ void EffectSlot::setDistortion(float value) {
 void EffectSlot::setDelay(float value) {
     clearConnections();
 
-    patchIn = new AudioConnection(*input, 1, delay, 1);
-    patchOut = new AudioConnection(delay, 1, *outputNode, 1);
+    patchIn = new AudioConnection(*input, 0, delay, 0);
+    patchOut = new AudioConnection(delay, 0, *outputNode, 0);
 
     delay.delay(0, value * 500.0f);
 }
 
 void EffectSlot::setReverb(float value) {
     clearConnections();
-    patchIn = new AudioConnection(*input, 1, reverb, 1);
-    patchOut = new AudioConnection(reverb, 1, *outputNode, 1);
+    patchIn = new AudioConnection(*input, 0, reverb, 0);
+    patchOut = new AudioConnection(reverb, 0, *outputNode, 0);
     reverb.roomsize(value);
     reverb.damping(1.0f - value);
 }
@@ -63,8 +63,8 @@ void EffectSlot::setReverb(float value) {
 void EffectSlot::setBypass() {
     clearConnections();
 
-    patchIn = new AudioConnection(*input, 1, bypass, 1);
-    patchOut = new AudioConnection(bypass, 1, *outputNode, 1);
+    patchIn = new AudioConnection(*input, 0, bypass, 0);
+    patchOut = new AudioConnection(bypass, 0, *outputNode, 0);
 
     bypass.gain(1.0f);
 }
@@ -72,8 +72,8 @@ void EffectSlot::setBypass() {
 void EffectSlot::setChorus(int voices) {
     clearConnections();
 
-    patchIn = new AudioConnection(*input, 1, chorus, 1);
-    patchOut = new AudioConnection(chorus, 1, *outputNode, 1);
+    patchIn = new AudioConnection(*input, 0, chorus, 0);
+    patchOut = new AudioConnection(chorus, 0, *outputNode, 0);
 
     chorus.begin(chorusDelayLine, CHORUS_DELAY_LENGTH, 2);
     chorus.voices(voices);
@@ -82,8 +82,8 @@ void EffectSlot::setChorus(int voices) {
 void EffectSlot::setFlange(float offset, float depth, float rate) {
     clearConnections();
 
-    patchIn = new AudioConnection(*input, 1, flange, 1);
-    patchOut = new AudioConnection(flange, 1, *outputNode, 1);
+    patchIn = new AudioConnection(*input, 0, flange, 0);
+    patchOut = new AudioConnection(flange, 0, *outputNode, 0);
 
     flange.begin(flangeDelayLine, FLANGE_DELAY_LENGTH, offset, depth, rate);
 }
