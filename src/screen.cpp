@@ -8,9 +8,11 @@
 #define OLED_RESET -1
 #define SCREEN_ADDRESS 0x3C
 
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire1, OLED_RESET);
 
 void setup_screen() {
+    Wire1.begin();
+
     while (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     }
 
@@ -32,37 +34,72 @@ void clear_screen() {
     display.display();
 }
 
-void draw_value_screen(const char *title, int value) {
+void draw_value_screen(const char *title, float value) {
     display.clearDisplay();
-    display.setTextSize(1);
+
+    display.setTextSize(2);
     display.setTextColor(SSD1306_WHITE);
     display.setCursor(0, 0);
     display.println(title);
 
     display.setTextSize(3);
     display.setCursor(0, 20);
-    display.println(value);
+    display.println(value, 1);
+
     display.display();
 }
 
-void draw_menu(const char *items[], int itemCount, int selectedIndex) {
+void draw_menu(const char *title, const char *items[], int itemCount,
+               int selectedIndex) {
+
     display.clearDisplay();
+
+    const int titleHeight = 16;
+    const int lineHeight = 10;
+    const int visibleRows = 5;
+
+    int scrollOffset = 0;
+
+    if (selectedIndex >= visibleRows) {
+        scrollOffset = selectedIndex - visibleRows + 1;
+    }
+
+    int maxScroll = max(0, itemCount - visibleRows);
+    scrollOffset = min(scrollOffset, maxScroll);
+
+    display.fillRect(0, 0, SCREEN_WIDTH, titleHeight, SSD1306_WHITE);
+
+    display.setTextSize(2);
+    display.setTextColor(SSD1306_BLACK);
+
+    int16_t x1, y1;
+    uint16_t w, h;
+
+    display.getTextBounds(title, 0, 0, &x1, &y1, &w, &h);
+
+    int titleX = (SCREEN_WIDTH - w) / 2;
+    int titleY = (titleHeight - h) / 2;
+
+    display.setCursor(titleX, titleY);
+    display.println(title);
+
     display.setTextSize(1);
 
-    int lineHeight = 10;
+    int visibleCount = min(itemCount - scrollOffset, visibleRows);
 
-    for (int i = 0; i < itemCount; i++) {
-        int y = i * lineHeight;
+    for (int i = 0; i < visibleCount; i++) {
+        int actualIndex = scrollOffset + i;
+        int y = titleHeight + (i * lineHeight);
 
-        if (i == selectedIndex) {
+        if (actualIndex == selectedIndex) {
             display.fillRect(0, y, SCREEN_WIDTH, lineHeight, SSD1306_WHITE);
             display.setTextColor(SSD1306_BLACK);
         } else {
             display.setTextColor(SSD1306_WHITE);
         }
 
-        display.setCursor(0, y);
-        display.println(items[i]);
+        display.setCursor(0, y + 1);
+        display.println(items[actualIndex]);
     }
 
     display.display();

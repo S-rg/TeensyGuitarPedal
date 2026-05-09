@@ -8,13 +8,14 @@
 #include <stdint.h>
 
 static int get_encoder_value(int minVal, int maxVal, int currentVal,
-                             const char *title) {
+                             const char *title, float div = 1.0f) {
     __disable_irq();
     encoderPosition = currentVal;
     __enable_irq();
 
     long lastPos = currentVal;
-    draw_value_screen(title, currentVal);
+
+    draw_value_screen(title, (float)currentVal / div);
 
     while (true) {
         __disable_irq();
@@ -32,7 +33,7 @@ static int get_encoder_value(int minVal, int maxVal, int currentVal,
             __enable_irq();
 
             lastPos = pos;
-            draw_value_screen(title, pos);
+            draw_value_screen(title, pos / div);
         }
 
         ButtonEvent ev;
@@ -47,20 +48,20 @@ static int get_encoder_value(int minVal, int maxVal, int currentVal,
 static void run_effects_menu(Pedalboard &pedal) {
     const char *slotItems[] = {"Slot 1", "Slot 2", "Slot 3", "Slot 4", "Back"};
     int slotSel = 0;
-    draw_menu(slotItems, 5, slotSel);
+    draw_menu("Slots", slotItems, 5, slotSel);
 
     while (true) {
         ButtonEvent ev;
         if (poll_button_event(ev)) {
             if (ev == ButtonEvent::Navigate) {
                 slotSel = (slotSel + 1) % 5;
-                draw_menu(slotItems, 5, slotSel);
+                draw_menu("Slots", slotItems, 5, slotSel);
             } else if (ev == ButtonEvent::Select) {
                 if (slotSel == 4)
                     return;
 
                 int effectSel = 0;
-                draw_menu(Pedalboard::effectTypeNames, 6, effectSel);
+                draw_menu("Effects", Pedalboard::effectTypeNames, 6, effectSel);
                 bool choosingEffect = true;
 
                 while (choosingEffect) {
@@ -68,7 +69,7 @@ static void run_effects_menu(Pedalboard &pedal) {
                     if (poll_button_event(ev2)) {
                         if (ev2 == ButtonEvent::Navigate) {
                             effectSel = (effectSel + 1) % 6;
-                            draw_menu(Pedalboard::effectTypeNames, 6,
+                            draw_menu("Effects", Pedalboard::effectTypeNames, 6,
                                       effectSel);
                         } else if (ev2 == ButtonEvent::Select) {
                             int val = 0;
@@ -83,7 +84,8 @@ static void run_effects_menu(Pedalboard &pedal) {
                         }
                     }
                 }
-                draw_menu(slotItems, 5, slotSel); // Redraw slot menu when done
+                draw_menu("Effects", slotItems, 5,
+                          slotSel); // Redraw slot menu when done
             }
         }
     }
@@ -110,7 +112,7 @@ static void draw_tone_menu(int selection, int scrollOffset) {
     const char *window[VISIBLE_ROWS];
     for (int i = 0; i < visibleCount; i++)
         window[i] = bandLabels[scrollOffset + i];
-    draw_menu(window, visibleCount, selection - scrollOffset);
+    draw_menu("Bands", window, visibleCount, selection - scrollOffset);
 }
 
 static void run_tone_control_menu(Pedalboard &pedal) {
@@ -136,9 +138,10 @@ static void run_tone_control_menu(Pedalboard &pedal) {
                 char title[32];
                 snprintf(title, sizeof(title), "Band %d Gain", selection + 1);
                 int currentGain = (int)pedal.getToneGain(selection);
-                int newGain = get_encoder_value(-10, 10, currentGain, title);
+                int newGain =
+                    get_encoder_value(-100, 100, currentGain, title, 10.0f);
 
-                pedal.setToneGain(selection, newGain);
+                pedal.setToneGain(selection, newGain / 10.f);
                 draw_tone_menu(selection, scrollOffset);
             }
         }
@@ -149,14 +152,14 @@ static void save_to_preset(Pedalboard &pedal) {
     const char *presetItems[] = {"Preset 1", "Preset 2", "Preset 3", "Preset 4",
                                  "Back"};
     int selection = 0;
-    draw_menu(presetItems, 5, selection);
+    draw_menu("Presets", presetItems, 5, selection);
 
     while (true) {
         ButtonEvent ev;
         if (poll_button_event(ev)) {
             if (ev == ButtonEvent::Navigate) {
                 selection = (selection + 1) % 5;
-                draw_menu(presetItems, 5, selection);
+                draw_menu("Presets", presetItems, 5, selection);
             } else if (ev == ButtonEvent::Select) {
                 if (selection == 4)
                     return; // Back
@@ -190,14 +193,14 @@ static constexpr int NUM_SETTINGS = 4;
 
 void run_settings_menu(Pedalboard &pedal) {
     int selection = 0;
-    draw_menu(settingsItems, NUM_SETTINGS, selection);
+    draw_menu("Settings", settingsItems, NUM_SETTINGS, selection);
 
     while (true) {
         ButtonEvent ev;
         if (poll_button_event(ev)) {
             if (ev == ButtonEvent::Navigate) {
                 selection = (selection + 1) % NUM_SETTINGS;
-                draw_menu(settingsItems, NUM_SETTINGS, selection);
+                draw_menu("Settings", settingsItems, NUM_SETTINGS, selection);
             } else if (ev == ButtonEvent::Select) {
                 switch (selection) {
                 case 0:
@@ -212,7 +215,7 @@ void run_settings_menu(Pedalboard &pedal) {
                 case 3:
                     return;
                 }
-                draw_menu(settingsItems, NUM_SETTINGS, selection);
+                draw_menu("Settings", settingsItems, NUM_SETTINGS, selection);
             }
         }
     }

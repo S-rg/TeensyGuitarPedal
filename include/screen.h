@@ -7,9 +7,10 @@ void setup_screen();
 
 void write_to_screen(const char *text);
 
-void draw_menu(const char *items[], int itemCount, int selectedIndex);
+void draw_menu(const char *title, const char *items[], int itemCount,
+               int selectedIndex);
 
-void draw_value_screen(const char *title, int value);
+void draw_value_screen(const char *title, float value);
 
 void clear_screen();
 #endif

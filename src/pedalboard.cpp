@@ -121,5 +121,5 @@ void Pedalboard::print_menu(int selected) {
         items[i] = lines[i];
     }
 
-    draw_menu(items, NUM_SLOTS, selected);
+    draw_menu("Slots", items, NUM_SLOTS, selected);
 }

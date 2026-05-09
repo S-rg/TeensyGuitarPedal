@@ -11,9 +11,10 @@
 Pedalboard pedal;
 
 void setup() {
-    // Serial.begin(115200);
-    // delay(1000);
-    //
+    Serial.begin(115200);
+    while (!Serial) {
+    }
+
     AudioMemory(160);
     pedal.begin();
     setup_screen();
