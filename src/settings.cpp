@@ -77,7 +77,8 @@ static void run_effects_menu(Pedalboard &pedal) {
                                     0, 100, 50,
                                     Pedalboard::effectTypeNames[effectSel]);
                             }
-                            pedal.getSlot(slotSel)->applyEffect(effectSel, val);
+                            pedal.getSlot(slotSel)->applyEffect(
+                                static_cast<EffectType>(effectSel), val);
                             choosingEffect = false;
                         }
                     }

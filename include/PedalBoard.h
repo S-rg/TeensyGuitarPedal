@@ -46,7 +46,6 @@ class Pedalboard {
     AudioConnection *cOut;
 
     static const float freqs[NUM_TONE_BANDS];
-
     static const int NUM_EFFECT_TYPES = 6;
 
     static const char *effectTypeToString(EffectType type);

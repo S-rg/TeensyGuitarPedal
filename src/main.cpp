@@ -1,3 +1,4 @@
+#include "EffectSlot.h"
 #include "PedalBoard.h"
 #include "buttons.h"
 #include "pins.h"
@@ -10,13 +11,18 @@
 Pedalboard pedal;
 
 void setup() {
-    AudioMemory(20);
+    // Serial.begin(115200);
+    // delay(1000);
+    //
+    AudioMemory(160);
     pedal.begin();
     setup_screen();
     setup_buttons(B1PIN, B2PIN, ENCAPIN, ENCBPIN, ENCSWPIN, P1PIN, P2PIN, P3PIN,
                   P4PIN);
 
     clear_screen();
+
+    pedal.getSlot(0)->applyEffect(FX_DELAY, 50);
 }
 
 void loop() {

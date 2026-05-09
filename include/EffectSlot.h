@@ -25,11 +25,20 @@ class EffectSlot {
     AudioEffectFlange flange;
     AudioAmplifier bypass;
 
+    AudioMixer4 wetDryMixer;
+    AudioAmplifier dryGain;
+    AudioAmplifier wetGain;
+
+    AudioConnection *patchDry = nullptr;
+    AudioConnection *patchWet = nullptr;
+    AudioConnection *patchMixOut = nullptr;
+
     AudioConnection *patchIn = nullptr;
     AudioConnection *patchOut = nullptr;
 
     AudioStream *input;
     AudioStream *outputNode;
+    AudioAmplifier through;
 
     EffectType currentEffect;
     int currentValue;

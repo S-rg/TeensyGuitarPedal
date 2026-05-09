@@ -4,9 +4,7 @@
 #include <cstdint>
 
 EffectSlot::EffectSlot(AudioStream *in, AudioStream *out)
-    : input(in), outputNode(out) {
-    // setBypass();
-}
+    : input(in), outputNode(out) {}
 
 void EffectSlot::initialize(AudioStream *in, AudioStream *out) {
     input = in;
@@ -19,9 +17,25 @@ void EffectSlot::clearConnections() {
         delete patchIn;
         patchIn = nullptr;
     }
+
     if (patchOut) {
         delete patchOut;
         patchOut = nullptr;
+    }
+
+    if (patchDry) {
+        delete patchDry;
+        patchDry = nullptr;
+    }
+
+    if (patchWet) {
+        delete patchWet;
+        patchWet = nullptr;
+    }
+
+    if (patchMixOut) {
+        delete patchMixOut;
+        patchMixOut = nullptr;
     }
 }
 
@@ -29,42 +43,64 @@ void EffectSlot::setDistortion(float value) {
     clearConnections();
 
     patchIn = new AudioConnection(*input, 0, distortion, 0);
-    patchOut = new AudioConnection(distortion, 0, *outputNode, 0);
+    patchOut = new AudioConnection(distortion, 0, through, 0);
 
-    static float curve[256];
+    static float curve[257];
     float drive = 1.0f + value * 20.0f;
 
-    for (int i = 0; i < 256; i++) {
+    for (int i = 0; i < 257; i++) {
         float x = (i - 128) / 128.0f;
         float y = x / (1.0f + fabsf(x * drive));
         curve[i] = y;
     }
 
-    distortion.shape(curve, 256);
+    distortion.shape(curve, 257);
 }
 
 void EffectSlot::setDelay(float value) {
     clearConnections();
 
     patchIn = new AudioConnection(*input, 0, delay, 0);
-    patchOut = new AudioConnection(delay, 0, *outputNode, 0);
+    patchWet = new AudioConnection(delay, 0, wetDryMixer, 0);
+
+    patchDry = new AudioConnection(*input, 0, dryGain, 0);
+    patchOut = new AudioConnection(dryGain, 0, wetDryMixer, 1);
+    patchMixOut = new AudioConnection(wetDryMixer, 0, through, 0);
 
     delay.delay(0, value * 500.0f);
+
+    float wet = value;
+    float dry = 1.0f - (wet * 0.5f);
+
+    wetDryMixer.gain(0, wet);
+    wetDryMixer.gain(1, dry);
 }
 
 void EffectSlot::setReverb(float value) {
     clearConnections();
+
     patchIn = new AudioConnection(*input, 0, reverb, 0);
-    patchOut = new AudioConnection(reverb, 0, *outputNode, 0);
+    patchWet = new AudioConnection(reverb, 0, wetDryMixer, 0);
+
+    patchDry = new AudioConnection(*input, 0, dryGain, 0);
+    patchOut = new AudioConnection(dryGain, 0, wetDryMixer, 1);
+    patchMixOut = new AudioConnection(wetDryMixer, 0, through, 0);
+
     reverb.roomsize(value);
     reverb.damping(1.0f - value);
+
+    float wet = value;
+    float dry = 1.0f - (wet * 0.5f);
+
+    wetDryMixer.gain(0, wet);
+    wetDryMixer.gain(1, dry);
 }
 
 void EffectSlot::setBypass() {
     clearConnections();
 
     patchIn = new AudioConnection(*input, 0, bypass, 0);
-    patchOut = new AudioConnection(bypass, 0, *outputNode, 0);
+    patchOut = new AudioConnection(bypass, 0, through, 0);
 
     bypass.gain(1.0f);
 }
@@ -73,7 +109,7 @@ void EffectSlot::setChorus(int voices) {
     clearConnections();
 
     patchIn = new AudioConnection(*input, 0, chorus, 0);
-    patchOut = new AudioConnection(chorus, 0, *outputNode, 0);
+    patchOut = new AudioConnection(chorus, 0, through, 0);
 
     chorus.begin(chorusDelayLine, CHORUS_DELAY_LENGTH, 2);
     chorus.voices(voices);
@@ -83,7 +119,7 @@ void EffectSlot::setFlange(float offset, float depth, float rate) {
     clearConnections();
 
     patchIn = new AudioConnection(*input, 0, flange, 0);
-    patchOut = new AudioConnection(flange, 0, *outputNode, 0);
+    patchOut = new AudioConnection(flange, 0, through, 0);
 
     flange.begin(flangeDelayLine, FLANGE_DELAY_LENGTH, offset, depth, rate);
 }

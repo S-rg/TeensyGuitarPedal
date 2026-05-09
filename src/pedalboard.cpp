@@ -24,11 +24,12 @@ void Pedalboard::begin() {
     slot3 = new EffectSlot(nullptr, nullptr);
     slot4 = new EffectSlot(nullptr, nullptr);
 
-    slot1->initialize(&tone[NUM_TONE_BANDS - 1], &slot2->bypass);
-    slot2->initialize(&slot1->bypass, &slot3->bypass);
-    slot3->initialize(&slot2->bypass, &slot4->bypass);
-    slot4->initialize(&slot3->bypass, &finalOut);
+    slot1->initialize(&tone[NUM_TONE_BANDS - 1], &slot1->through);
+    slot2->initialize(&slot1->through, &slot2->through);
+    slot3->initialize(&slot2->through, &slot3->through);
+    slot4->initialize(&slot3->through, &slot4->through);
 
+    cOut = new AudioConnection(slot4->through, 0, finalOut, 0);
     cFinalOut = new AudioConnection(finalOut, 0, output, 1);
     finalOut.gain(1.0f);
 
