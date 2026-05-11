@@ -4,6 +4,8 @@
 #include "PeakingBiquad.h"
 #include "preset.h"
 #include <Audio.h>
+#include <SD.h>
+#include <SerialFlash.h>
 
 class Pedalboard {
   public:
@@ -23,12 +25,33 @@ class Pedalboard {
     AudioOutputI2S output;
 
     static const char *effectTypeNames[];
-
     EffectSlot *getSlot(int index);
+    void togglePedal(bool state);
+
+    AudioPlaySdWav wavPlayer;
+    AudioMixer4 outputMixer;
+
+    void startLoop(const char *filename);
+    void stopLoop();
+    bool isLoopPlaying();
+
+    void playWav(char name[]);
+
+    // TEMP
+    //
+    AudioAnalyzePeak peakInput;
+    AudioAnalyzePeak peakTone;
+    AudioAnalyzePeak peakOut;
+
+    AudioConnection *cPeakInput;
+    AudioConnection *cPeakTone;
+    AudioConnection *cPeakOut;
+
+    void printAudioDebug();
 
   private:
-    AudioAmplifier finalOut;
     AudioConnection *cFinalOut;
+    AudioConnection *cWav;
 
     static constexpr int NUM_TONE_BANDS = 10;
     static constexpr float SAMPLE_RATE = 44100.0f;
@@ -49,4 +72,7 @@ class Pedalboard {
     static const int NUM_EFFECT_TYPES = 6;
 
     static const char *effectTypeToString(EffectType type);
+
+    // temp
+    //
 };

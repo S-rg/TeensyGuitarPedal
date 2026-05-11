@@ -9,3 +9,4 @@
 #define P2PIN 30
 #define P3PIN 31
 #define P4PIN 32
+#define TSWITCHPIN 27

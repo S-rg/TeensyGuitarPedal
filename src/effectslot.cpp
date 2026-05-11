@@ -1,5 +1,6 @@
 #include "EffectSlot.h"
 #include "AudioStream.h"
+#include <Audio.h>
 #include <cmath>
 #include <cstdint>
 
@@ -9,6 +10,11 @@ EffectSlot::EffectSlot(AudioStream *in, AudioStream *out)
 void EffectSlot::initialize(AudioStream *in, AudioStream *out) {
     input = in;
     outputNode = out;
+
+    through.gain(1.0f);
+    dryGain.gain(1.0f);
+    wetGain.gain(1.0f);
+
     setBypass();
 }
 

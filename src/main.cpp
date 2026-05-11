@@ -15,18 +15,21 @@ void setup() {
     while (!Serial) {
     }
 
-    AudioMemory(160);
+    AudioMemory(220);
     pedal.begin();
     setup_screen();
     setup_buttons(B1PIN, B2PIN, ENCAPIN, ENCBPIN, ENCSWPIN, P1PIN, P2PIN, P3PIN,
-                  P4PIN);
+                  P4PIN, TSWITCHPIN);
 
     clear_screen();
-
-    pedal.getSlot(0)->applyEffect(FX_DELAY, 50);
+    // pedal.playWav((char *)"B.WAV");
 }
 
 void loop() {
+    // pedal.printAudioDebug();
+    // Serial.printf("Audio mem used: %u | max: %u\n", AudioMemoryUsage(),
+    // AudioMemoryUsageMax());
+
     ButtonEvent ev;
     if (poll_button_event(ev)) {
         if (ev == ButtonEvent::Select || ev == ButtonEvent::Navigate) {
@@ -55,6 +58,8 @@ void loop() {
             p.loadPreset(3);
 
             pedal.loadPreset(p);
+        } else if (ev == ButtonEvent::ToggleSwitch) {
+            pedal.togglePedal(false);
         }
     }
 }

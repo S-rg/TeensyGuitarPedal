@@ -14,6 +14,7 @@ static volatile uint32_t lastP1Time = 0;
 static volatile uint32_t lastP2Time = 0;
 static volatile uint32_t lastP3Time = 0;
 static volatile uint32_t lastP4Time = 0;
+static volatile uint32_t lastTSwitchTime = 0;
 
 static volatile bool lastB1State = false;
 static volatile bool lastB2State = false;
@@ -22,6 +23,8 @@ static volatile bool lastP1State = false;
 static volatile bool lastP2State = false;
 static volatile bool lastP3State = false;
 static volatile bool lastP4State = false;
+
+static volatile bool lastTSwitchState = false;
 
 static constexpr uint8_t QUEUE_SIZE = 8;
 static volatile ButtonEvent eventQueue[QUEUE_SIZE];
@@ -51,6 +54,9 @@ static void FASTRUN enqueue(ButtonEvent ev) {
     if (next != qHead) {
         eventQueue[qTail] = ev;
         qTail = next;
+
+        Serial.print("INTERRUPT: ");
+        Serial.println((int)ev);
     }
 }
 
@@ -98,6 +104,11 @@ void FASTRUN p4_ISR() {
         enqueue(ButtonEvent::Preset4);
 }
 
+void FASTRUN tSwitch_ISR() {
+    if (debounce(lastTSwitchTime, lastTSwitchState))
+        enqueue(ButtonEvent::ToggleSwitch);
+}
+
 volatile long encoderPosition = 0;
 static int _encAPin;
 static int _encBPin;
@@ -112,7 +123,7 @@ void FASTRUN encoder_ISR() {
 
 void setup_buttons(int b1Pin, int b2Pin, int encAPin, int encBPin, int encSWPin,
                    int preset1Pin, int preset2Pin, int preset3Pin,
-                   int preset4Pin) {
+                   int preset4Pin, int tSwitchPin) {
     _encAPin = encAPin;
     _encBPin = encBPin;
 
@@ -127,6 +138,8 @@ void setup_buttons(int b1Pin, int b2Pin, int encAPin, int encBPin, int encSWPin,
     pinMode(preset3Pin, INPUT_PULLUP);
     pinMode(preset4Pin, INPUT_PULLUP);
 
+    pinMode(tSwitchPin, INPUT_PULLUP);
+
     attachInterrupt(digitalPinToInterrupt(b1Pin), b1_ISR, RISING);
     attachInterrupt(digitalPinToInterrupt(b2Pin), b2_ISR, RISING);
     attachInterrupt(digitalPinToInterrupt(encSWPin), sw_ISR, FALLING);
@@ -136,6 +149,8 @@ void setup_buttons(int b1Pin, int b2Pin, int encAPin, int encBPin, int encSWPin,
     attachInterrupt(digitalPinToInterrupt(preset2Pin), p2_ISR, FALLING);
     attachInterrupt(digitalPinToInterrupt(preset3Pin), p3_ISR, FALLING);
     attachInterrupt(digitalPinToInterrupt(preset4Pin), p4_ISR, FALLING);
+
+    attachInterrupt(digitalPinToInterrupt(tSwitchPin), tSwitch_ISR, CHANGE);
 }
 
 bool poll_button_event(ButtonEvent &ev) {

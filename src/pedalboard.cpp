@@ -1,4 +1,5 @@
 #include "PedalBoard.h"
+#include "SD.h"
 #include "mixer.h"
 #include "preset.h"
 #include "screen.h"
@@ -13,6 +14,8 @@ Pedalboard::Pedalboard() {}
 
 void Pedalboard::begin() {
     // AudioAmplifier dummyNode;
+    SPI.begin();
+    SD.begin(BUILTIN_SDCARD);
 
     cTone[0] = new AudioConnection(input, 1, tone[0], 0);
     for (int i = 0; i < NUM_TONE_BANDS - 1; i++) {
@@ -29,15 +32,24 @@ void Pedalboard::begin() {
     slot3->initialize(&slot2->through, &slot3->through);
     slot4->initialize(&slot3->through, &slot4->through);
 
-    cOut = new AudioConnection(slot4->through, 0, finalOut, 0);
-    cFinalOut = new AudioConnection(finalOut, 0, output, 1);
-    finalOut.gain(1.0f);
+    cOut = new AudioConnection(slot4->through, 0, outputMixer, 0);
+    cWav = new AudioConnection(wavPlayer, 0, outputMixer, 1);
+    cFinalOut = new AudioConnection(outputMixer, 0, output, 1);
 
     for (int i = 0; i < NUM_TONE_BANDS; i++) {
         toneGains[i] = 0.0f;
     }
 
+    outputMixer.gain(0, 1.0f);
+    outputMixer.gain(1, 0.2f);
+
     setupTone();
+
+    cPeakInput = new AudioConnection(input, 1, peakInput, 0);
+
+    cPeakTone = new AudioConnection(tone[NUM_TONE_BANDS - 1], 0, peakTone, 0);
+
+    cPeakOut = new AudioConnection(outputMixer, 0, peakOut, 0);
 }
 
 void Pedalboard::loadPreset(const PresetData &p) {
@@ -122,4 +134,34 @@ void Pedalboard::print_menu(int selected) {
     }
 
     draw_menu("Slots", items, NUM_SLOTS, selected);
+}
+
+void Pedalboard::playWav(char name[]) {
+    Serial.print("Playing: ");
+    Serial.println(name);
+
+    wavPlayer.play(name);
+
+    delay(10);
+
+    if (wavPlayer.isPlaying()) {
+        Serial.println("WAV playing");
+    } else {
+        Serial.println("WAV failed");
+    }
+}
+
+void Pedalboard::togglePedal(bool state) {}
+
+void Pedalboard::printAudioDebug() {
+    if (peakInput.available()) {
+        Serial.print("IN: ");
+        Serial.print(peakInput.read(), 4);
+
+        Serial.print(" TONE: ");
+        Serial.print(peakTone.read(), 4);
+
+        Serial.print(" OUT: ");
+        Serial.println(peakOut.read(), 4);
+    }
 }
