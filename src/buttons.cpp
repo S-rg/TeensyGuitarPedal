@@ -54,9 +54,6 @@ static void FASTRUN enqueue(ButtonEvent ev) {
     if (next != qHead) {
         eventQueue[qTail] = ev;
         qTail = next;
-
-        Serial.print("INTERRUPT: ");
-        Serial.println((int)ev);
     }
 }
 

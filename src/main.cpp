@@ -1,5 +1,6 @@
 #include "EffectSlot.h"
 #include "PedalBoard.h"
+#include "Presets.h"
 #include "buttons.h"
 #include "pins.h"
 #include "screen.h"
@@ -9,11 +10,12 @@
 #include <Wire.h>
 
 Pedalboard pedal;
+static bool bypass = false;
 
 void setup() {
-    Serial.begin(115200);
-    while (!Serial) {
-    }
+    // Serial.begin(115200);
+    // while (!Serial) {
+    // }
 
     AudioMemory(220);
     pedal.begin();
@@ -22,13 +24,14 @@ void setup() {
                   P4PIN, TSWITCHPIN);
 
     clear_screen();
+    draw_wahhh_pedals();
     // pedal.playWav((char *)"B.WAV");
 }
 
 void loop() {
     // pedal.printAudioDebug();
     // Serial.printf("Audio mem used: %u | max: %u\n", AudioMemoryUsage(),
-    // AudioMemoryUsageMax());
+    //               AudioMemoryUsageMax());
 
     ButtonEvent ev;
     if (poll_button_event(ev)) {
@@ -39,27 +42,16 @@ void loop() {
         }
 
         else if (ev == ButtonEvent::Preset1) {
-            PresetData p;
-            p.loadPreset(0);
-
-            pedal.loadPreset(p);
+            pedal.loadPreset(the_blues_squared);
         } else if (ev == ButtonEvent::Preset2) {
-            PresetData p;
-            p.loadPreset(1);
-
-            pedal.loadPreset(p);
+            pedal.loadPreset(bi_hamba);
         } else if (ev == ButtonEvent::Preset3) {
-            PresetData p;
-            p.loadPreset(2);
-
-            pedal.loadPreset(p);
+            pedal.loadPreset(THEBIGBAD);
         } else if (ev == ButtonEvent::Preset4) {
-            PresetData p;
-            p.loadPreset(3);
-
-            pedal.loadPreset(p);
+            pedal.loadPreset(the_dark_blues);
         } else if (ev == ButtonEvent::ToggleSwitch) {
-            pedal.togglePedal(false);
+            bypass = !bypass;
+            pedal.togglePedal(bypass);
         }
     }
 }

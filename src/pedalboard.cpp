@@ -1,8 +1,11 @@
 #include "PedalBoard.h"
+#include "Presets.h"
 #include "SD.h"
 #include "mixer.h"
 #include "preset.h"
 #include "screen.h"
+
+PresetData Pedalboard::bypass_clean = the_blues;
 
 const float Pedalboard::freqs[NUM_TONE_BANDS] = {80,   120,  250,  500,  1000,
                                                  2000, 4000, 6000, 8000, 12000};
@@ -44,12 +47,6 @@ void Pedalboard::begin() {
     outputMixer.gain(1, 0.2f);
 
     setupTone();
-
-    cPeakInput = new AudioConnection(input, 1, peakInput, 0);
-
-    cPeakTone = new AudioConnection(tone[NUM_TONE_BANDS - 1], 0, peakTone, 0);
-
-    cPeakOut = new AudioConnection(outputMixer, 0, peakOut, 0);
 }
 
 void Pedalboard::loadPreset(const PresetData &p) {
@@ -151,17 +148,45 @@ void Pedalboard::playWav(char name[]) {
     }
 }
 
-void Pedalboard::togglePedal(bool state) {}
-
-void Pedalboard::printAudioDebug() {
-    if (peakInput.available()) {
-        Serial.print("IN: ");
-        Serial.print(peakInput.read(), 4);
-
-        Serial.print(" TONE: ");
-        Serial.print(peakTone.read(), 4);
-
-        Serial.print(" OUT: ");
-        Serial.println(peakOut.read(), 4);
+void Pedalboard::togglePedal(bool state) {
+    if (state) {
+        bypass_save = this->to_preset();
+        this->loadPreset(bypass_clean);
+    } else {
+        this->loadPreset(bypass_save);
     }
+}
+
+PresetData Pedalboard::to_preset() {
+    PresetData p{};
+
+    for (int i = 0; i < 4; i++) {
+        EffectSlot *slot = nullptr;
+
+        switch (i) {
+        case 0:
+            slot = slot1;
+            break;
+        case 1:
+            slot = slot2;
+            break;
+        case 2:
+            slot = slot3;
+            break;
+        case 3:
+            slot = slot4;
+            break;
+        }
+
+        if (slot) {
+            p.effectTypes[i] = static_cast<int8_t>(slot->currentEffect);
+            p.effectValues[i] = static_cast<int8_t>(slot->currentValue);
+        }
+    }
+
+    for (int i = 0; i < NUM_TONE_BANDS; i++) {
+        p.toneGains[i] = static_cast<int8_t>(toneGains[i]);
+    }
+
+    return p;
 }

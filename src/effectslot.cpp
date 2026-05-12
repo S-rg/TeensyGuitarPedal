@@ -15,6 +15,8 @@ void EffectSlot::initialize(AudioStream *in, AudioStream *out) {
     dryGain.gain(1.0f);
     wetGain.gain(1.0f);
 
+    lowpass.setLowpass(0, 5000, 0.707);
+
     setBypass();
 }
 
@@ -45,7 +47,7 @@ void EffectSlot::clearConnections() {
     }
 }
 
-void EffectSlot::setDistortion(float value) {
+void EffectSlot::setFuzz(float value) {
     clearConnections();
 
     patchIn = new AudioConnection(*input, 0, distortion, 0);
@@ -58,6 +60,24 @@ void EffectSlot::setDistortion(float value) {
         float x = (i - 128) / 128.0f;
         float y = x / (1.0f + fabsf(x * drive));
         curve[i] = y;
+    }
+
+    distortion.shape(curve, 257);
+}
+
+void EffectSlot::setOverdrive(float value) {
+    clearConnections();
+
+    patchIn = new AudioConnection(*input, 0, distortion, 0);
+    patchOut = new AudioConnection(distortion, 0, lowpass, 0);
+    patchMixOut = new AudioConnection(lowpass, 0, through, 0);
+
+    static float curve[257];
+    float drive = 1.0f + value * 15.0f;
+
+    for (int i = 0; i < 257; i++) {
+        float x = (i - 128) / 128.0f;
+        curve[i] = (2.0f / M_PI) * atanf(x * drive);
     }
 
     distortion.shape(curve, 257);
@@ -137,7 +157,7 @@ void EffectSlot::applyEffect(EffectType typeIndex, int value) {
 
     switch (typeIndex) {
     case FX_DISTORTION:
-        setDistortion(fVal);
+        setOverdrive(fVal);
         break;
     case FX_REVERB:
         setReverb(fVal);

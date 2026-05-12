@@ -13,4 +13,6 @@ void draw_menu(const char *title, const char *items[], int itemCount,
 void draw_value_screen(const char *title, float value);
 
 void clear_screen();
+
+void draw_wahhh_pedals();
 #endif

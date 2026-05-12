@@ -20,6 +20,9 @@ class Pedalboard {
     void print_menu(int selected);
 
     void loadPreset(const PresetData &p);
+    PresetData to_preset();
+    PresetData bypass_save;
+    static PresetData bypass_clean;
 
     AudioInputI2S input;
     AudioOutputI2S output;
@@ -36,18 +39,6 @@ class Pedalboard {
     bool isLoopPlaying();
 
     void playWav(char name[]);
-
-    // TEMP
-    //
-    AudioAnalyzePeak peakInput;
-    AudioAnalyzePeak peakTone;
-    AudioAnalyzePeak peakOut;
-
-    AudioConnection *cPeakInput;
-    AudioConnection *cPeakTone;
-    AudioConnection *cPeakOut;
-
-    void printAudioDebug();
 
   private:
     AudioConnection *cFinalOut;

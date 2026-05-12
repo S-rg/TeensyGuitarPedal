@@ -10,7 +10,8 @@ enum EffectType {
     FX_DELAY,
     FX_CHORUS,
     FX_FLANGE,
-    FX_BYPASS
+    FX_BYPASS,
+    FX_FUZZ
 };
 
 class EffectSlot {
@@ -24,6 +25,8 @@ class EffectSlot {
     AudioEffectChorus chorus;
     AudioEffectFlange flange;
     AudioAmplifier bypass;
+
+    AudioFilterBiquad lowpass;
 
     AudioMixer4 wetDryMixer;
     AudioAmplifier dryGain;
@@ -56,5 +59,7 @@ class EffectSlot {
     void setDelay(float value);
     void setChorus(int voices);
     void setFlange(float offset, float depth, float rate);
+    void setFuzz(float value);
+    void setOverdrive(float value);
     void setBypass();
 };

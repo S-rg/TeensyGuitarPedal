@@ -104,3 +104,28 @@ void draw_menu(const char *title, const char *items[], int itemCount,
 
     display.display();
 }
+
+void draw_wahhh_pedals() {
+    display.clearDisplay();
+
+    display.setTextSize(2);
+    display.setTextColor(SSD1306_WHITE);
+
+    display.setCursor(9, 17);
+    display.println("WAHHHH");
+
+    display.setCursor(15, 41);
+    display.println("PEDALS");
+
+    display.setTextColor(SSD1306_BLACK);
+    display.fillRect(4, 12, 120, 18, SSD1306_WHITE);
+    display.fillRect(10, 36, 108, 18, SSD1306_WHITE);
+
+    display.setCursor(6, 14);
+    display.println("WAHHHH");
+
+    display.setCursor(12, 38);
+    display.println("PEDALS");
+
+    display.display();
+}
