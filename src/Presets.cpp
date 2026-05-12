@@ -4,7 +4,7 @@ PresetData the_blues = {{FX_BYPASS, FX_BYPASS, FX_BYPASS, FX_BYPASS},
                         {0, 0, 0, 0},
                         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
 
-PresetData thunderclap = {{FX_DISTORTION, FX_DELAY, FX_REVERB, FX_BYPASS},
+PresetData thunderclap = {{FX_OVERDRIVE, FX_DELAY, FX_REVERB, FX_BYPASS},
                           {80, 15, 30, 0},
                           {-3, -2, -1, 2, 4, 4, 3, 1, -1, -3}};
 
@@ -16,7 +16,7 @@ PresetData the_dark_blues = {{FX_BYPASS, FX_BYPASS, FX_BYPASS, FX_BYPASS},
                              {0, 0, 0, 0},
                              {0, 0, 3, 2, 3, 2, 1, -1, -2, -3}};
 
-PresetData THEBIGBAD = {{FX_DISTORTION, FX_CHORUS, FX_DELAY, FX_DELAY},
+PresetData THEBIGBAD = {{FX_OVERDRIVE, FX_CHORUS, FX_DELAY, FX_DELAY},
                         {75, 20, 10, 10},
                         {-2, -3, -4, -3, -1, 1, -1, -1, -3, -5}};
 

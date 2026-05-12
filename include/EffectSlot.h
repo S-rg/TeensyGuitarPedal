@@ -5,7 +5,7 @@
 #define FLANGE_DELAY_LENGTH 1024
 
 enum EffectType {
-    FX_DISTORTION = 0,
+    FX_OVERDRIVE = 0,
     FX_REVERB,
     FX_DELAY,
     FX_CHORUS,
@@ -35,7 +35,6 @@ class EffectSlot {
     AudioConnection *patchDry = nullptr;
     AudioConnection *patchWet = nullptr;
     AudioConnection *patchMixOut = nullptr;
-
     AudioConnection *patchIn = nullptr;
     AudioConnection *patchOut = nullptr;
 
@@ -54,12 +53,11 @@ class EffectSlot {
   private:
     void clearConnections();
 
-    void setDistortion(float value);
+    void setOverdrive(float value);
+    void setFuzz(float value);
     void setReverb(float value);
     void setDelay(float value);
     void setChorus(int voices);
     void setFlange(float offset, float depth, float rate);
-    void setFuzz(float value);
-    void setOverdrive(float value);
     void setBypass();
 };

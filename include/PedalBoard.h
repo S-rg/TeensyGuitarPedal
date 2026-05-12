@@ -46,6 +46,7 @@ class Pedalboard {
 
     static constexpr int NUM_TONE_BANDS = 10;
     static constexpr float SAMPLE_RATE = 44100.0f;
+    static constexpr int NUM_EFFECT_TYPES = 7;
 
     EffectSlot *slot1;
     EffectSlot *slot2;
@@ -60,10 +61,9 @@ class Pedalboard {
     AudioConnection *cOut;
 
     static const float freqs[NUM_TONE_BANDS];
-    static const int NUM_EFFECT_TYPES = 6;
 
     static const char *effectTypeToString(EffectType type);
 
-    // temp
-    //
+    bool loopActive = false;
+    char loopFile[13];
 };

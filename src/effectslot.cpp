@@ -17,7 +17,8 @@ void EffectSlot::initialize(AudioStream *in, AudioStream *out) {
 
     lowpass.setLowpass(0, 5000, 0.707);
 
-    setBypass();
+    // Use applyEffect so currentEffect and currentValue are set correctly
+    applyEffect(FX_BYPASS, 0);
 }
 
 void EffectSlot::clearConnections() {
@@ -25,46 +26,25 @@ void EffectSlot::clearConnections() {
         delete patchIn;
         patchIn = nullptr;
     }
-
     if (patchOut) {
         delete patchOut;
         patchOut = nullptr;
     }
-
     if (patchDry) {
         delete patchDry;
         patchDry = nullptr;
     }
-
     if (patchWet) {
         delete patchWet;
         patchWet = nullptr;
     }
-
     if (patchMixOut) {
         delete patchMixOut;
         patchMixOut = nullptr;
     }
 }
 
-void EffectSlot::setFuzz(float value) {
-    clearConnections();
-
-    patchIn = new AudioConnection(*input, 0, distortion, 0);
-    patchOut = new AudioConnection(distortion, 0, through, 0);
-
-    static float curve[257];
-    float drive = 1.0f + value * 20.0f;
-
-    for (int i = 0; i < 257; i++) {
-        float x = (i - 128) / 128.0f;
-        float y = x / (1.0f + fabsf(x * drive));
-        curve[i] = y;
-    }
-
-    distortion.shape(curve, 257);
-}
-
+// Soft asymmetric saturation – warm drive tone
 void EffectSlot::setOverdrive(float value) {
     clearConnections();
 
@@ -79,7 +59,24 @@ void EffectSlot::setOverdrive(float value) {
         float x = (i - 128) / 128.0f;
         curve[i] = (2.0f / M_PI) * atanf(x * drive);
     }
+    distortion.shape(curve, 257);
+}
 
+// Hard clipping wavefolder – aggressive fuzz tone
+void EffectSlot::setFuzz(float value) {
+    clearConnections();
+
+    patchIn = new AudioConnection(*input, 0, distortion, 0);
+    patchOut = new AudioConnection(distortion, 0, through, 0);
+
+    static float curve[257];
+    float drive = 1.0f + value * 20.0f;
+
+    for (int i = 0; i < 257; i++) {
+        float x = (i - 128) / 128.0f;
+        float y = x / (1.0f + fabsf(x * drive));
+        curve[i] = y;
+    }
     distortion.shape(curve, 257);
 }
 
@@ -88,7 +85,6 @@ void EffectSlot::setDelay(float value) {
 
     patchIn = new AudioConnection(*input, 0, delay, 0);
     patchWet = new AudioConnection(delay, 0, wetDryMixer, 0);
-
     patchDry = new AudioConnection(*input, 0, dryGain, 0);
     patchOut = new AudioConnection(dryGain, 0, wetDryMixer, 1);
     patchMixOut = new AudioConnection(wetDryMixer, 0, through, 0);
@@ -97,7 +93,6 @@ void EffectSlot::setDelay(float value) {
 
     float wet = value;
     float dry = 1.0f - (wet * 0.5f);
-
     wetDryMixer.gain(0, wet);
     wetDryMixer.gain(1, dry);
 }
@@ -107,7 +102,6 @@ void EffectSlot::setReverb(float value) {
 
     patchIn = new AudioConnection(*input, 0, reverb, 0);
     patchWet = new AudioConnection(reverb, 0, wetDryMixer, 0);
-
     patchDry = new AudioConnection(*input, 0, dryGain, 0);
     patchOut = new AudioConnection(dryGain, 0, wetDryMixer, 1);
     patchMixOut = new AudioConnection(wetDryMixer, 0, through, 0);
@@ -117,7 +111,6 @@ void EffectSlot::setReverb(float value) {
 
     float wet = value;
     float dry = 1.0f - (wet * 0.5f);
-
     wetDryMixer.gain(0, wet);
     wetDryMixer.gain(1, dry);
 }
@@ -156,7 +149,7 @@ void EffectSlot::applyEffect(EffectType typeIndex, int value) {
     float fVal = value / 100.0f;
 
     switch (typeIndex) {
-    case FX_DISTORTION:
+    case FX_OVERDRIVE:
         setOverdrive(fVal);
         break;
     case FX_REVERB:
@@ -173,6 +166,9 @@ void EffectSlot::applyEffect(EffectType typeIndex, int value) {
         break;
     case FX_BYPASS:
         setBypass();
+        break;
+    case FX_FUZZ:
+        setFuzz(fVal);
         break;
     }
 }

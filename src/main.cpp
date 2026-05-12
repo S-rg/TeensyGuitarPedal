@@ -13,10 +13,6 @@ Pedalboard pedal;
 static bool bypass = false;
 
 void setup() {
-    // Serial.begin(115200);
-    // while (!Serial) {
-    // }
-
     AudioMemory(220);
     pedal.begin();
     setup_screen();
@@ -25,23 +21,18 @@ void setup() {
 
     clear_screen();
     draw_wahhh_pedals();
-    // pedal.playWav((char *)"B.WAV");
 }
 
 void loop() {
-    // pedal.printAudioDebug();
-    // Serial.printf("Audio mem used: %u | max: %u\n", AudioMemoryUsage(),
-    //               AudioMemoryUsageMax());
+    // Tick the loop engine – transparently restarts backing track when it ends
+    pedal.isLoopPlaying();
 
     ButtonEvent ev;
     if (poll_button_event(ev)) {
         if (ev == ButtonEvent::Select || ev == ButtonEvent::Navigate) {
             run_settings_menu(pedal);
-
-            clear_screen(); // Run on completion;
-        }
-
-        else if (ev == ButtonEvent::Preset1) {
+            clear_screen();
+        } else if (ev == ButtonEvent::Preset1) {
             pedal.loadPreset(the_blues_squared);
         } else if (ev == ButtonEvent::Preset2) {
             pedal.loadPreset(bi_hamba);

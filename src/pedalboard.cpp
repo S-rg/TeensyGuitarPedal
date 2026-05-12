@@ -10,13 +10,12 @@ PresetData Pedalboard::bypass_clean = the_blues;
 const float Pedalboard::freqs[NUM_TONE_BANDS] = {80,   120,  250,  500,  1000,
                                                  2000, 4000, 6000, 8000, 12000};
 
-const char *Pedalboard::effectTypeNames[] = {"Distortion", "Reverb", "Delay",
-                                             "Chorus",     "Flange", "None"};
+const char *Pedalboard::effectTypeNames[] = {
+    "Overdrive", "Reverb", "Delay", "Chorus", "Flange", "None", "Fuzz"};
 
 Pedalboard::Pedalboard() {}
 
 void Pedalboard::begin() {
-    // AudioAmplifier dummyNode;
     SPI.begin();
     SD.begin(BUILTIN_SDCARD);
 
@@ -39,24 +38,23 @@ void Pedalboard::begin() {
     cWav = new AudioConnection(wavPlayer, 0, outputMixer, 1);
     cFinalOut = new AudioConnection(outputMixer, 0, output, 1);
 
-    for (int i = 0; i < NUM_TONE_BANDS; i++) {
+    for (int i = 0; i < NUM_TONE_BANDS; i++)
         toneGains[i] = 0.0f;
-    }
 
     outputMixer.gain(0, 1.0f);
     outputMixer.gain(1, 0.2f);
+
+    loopActive = false;
+    loopFile[0] = '\0';
 
     setupTone();
 }
 
 void Pedalboard::loadPreset(const PresetData &p) {
     for (int i = 0; i < 4; i++) {
-        EffectSlot *slot = getSlot(i);
-        EffectType type = static_cast<EffectType>(p.effectTypes[i]);
-        int value = p.effectValues[i];
-        slot->applyEffect(type, value);
+        getSlot(i)->applyEffect(static_cast<EffectType>(p.effectTypes[i]),
+                                p.effectValues[i]);
     }
-
     for (int i = 0; i < NUM_TONE_BANDS; i++) {
         setToneGain(i, p.toneGains[i]);
     }
@@ -67,30 +65,31 @@ Pedalboard::~Pedalboard() {
     delete slot2;
     delete slot3;
     delete slot4;
-
-    for (int i = 0; i < NUM_TONE_BANDS; i++) {
+    for (int i = 0; i < NUM_TONE_BANDS; i++)
         delete cTone[i];
-    }
 }
 
 void Pedalboard::setupTone() {
-    for (int i = 0; i < NUM_TONE_BANDS; i++) {
+    for (int i = 0; i < NUM_TONE_BANDS; i++)
         tone[i].setPeaking(0, freqs[i], SAMPLE_RATE, 1.2f, 0.0f);
-    }
 }
 
 void Pedalboard::setToneGain(int band, float gainDB) {
     if (band < 0 || band >= NUM_TONE_BANDS)
         return;
-
     tone[band].setPeaking(0, freqs[band], SAMPLE_RATE, 1.2f, gainDB);
     toneGains[band] = gainDB;
 }
 
+float Pedalboard::getToneGain(int band) {
+    if (band < 0 || band >= NUM_TONE_BANDS)
+        return 0.0f;
+    return toneGains[band];
+}
+
 const char *Pedalboard::effectTypeToString(EffectType type) {
-    if (type < 0 || type >= NUM_EFFECT_TYPES) {
+    if (type < 0 || type >= NUM_EFFECT_TYPES)
         return "Unknown";
-    }
     return effectTypeNames[type];
 }
 
@@ -109,43 +108,47 @@ EffectSlot *Pedalboard::getSlot(int index) {
     }
 }
 
-float Pedalboard::getToneGain(int band) {
-    if (band < 0 || band >= NUM_TONE_BANDS)
-        return 0.0f;
-    return toneGains[band];
-}
-
 void Pedalboard::print_menu(int selected) {
     constexpr int NUM_SLOTS = 4;
-
     EffectSlot *slots[NUM_SLOTS] = {slot1, slot2, slot3, slot4};
 
     static char lines[NUM_SLOTS][32];
     const char *items[NUM_SLOTS];
 
     for (int i = 0; i < NUM_SLOTS; i++) {
-        snprintf(lines[i], sizeof(lines[i]), "Effect %d: %s", i + 1,
-                 effectTypeToString(slots[i]->currentEffect));
-
+        snprintf(lines[i], sizeof(lines[i]), "%d:%.9s %d", i + 1,
+                 effectTypeToString(slots[i]->currentEffect),
+                 slots[i]->currentValue);
         items[i] = lines[i];
     }
-
     draw_menu("Slots", items, NUM_SLOTS, selected);
 }
 
 void Pedalboard::playWav(char name[]) {
     Serial.print("Playing: ");
     Serial.println(name);
-
     wavPlayer.play(name);
-
     delay(10);
+    Serial.println(wavPlayer.isPlaying() ? "WAV playing" : "WAV failed");
+}
 
-    if (wavPlayer.isPlaying()) {
-        Serial.println("WAV playing");
-    } else {
-        Serial.println("WAV failed");
+void Pedalboard::startLoop(const char *filename) {
+    strncpy(loopFile, filename, sizeof(loopFile) - 1);
+    loopFile[sizeof(loopFile) - 1] = '\0';
+    loopActive = true;
+    wavPlayer.play(loopFile);
+}
+
+void Pedalboard::stopLoop() {
+    loopActive = false;
+    wavPlayer.stop();
+}
+
+bool Pedalboard::isLoopPlaying() {
+    if (loopActive && !wavPlayer.isPlaying()) {
+        wavPlayer.play(loopFile);
     }
+    return loopActive;
 }
 
 void Pedalboard::togglePedal(bool state) {
@@ -159,34 +162,15 @@ void Pedalboard::togglePedal(bool state) {
 
 PresetData Pedalboard::to_preset() {
     PresetData p{};
-
     for (int i = 0; i < 4; i++) {
-        EffectSlot *slot = nullptr;
-
-        switch (i) {
-        case 0:
-            slot = slot1;
-            break;
-        case 1:
-            slot = slot2;
-            break;
-        case 2:
-            slot = slot3;
-            break;
-        case 3:
-            slot = slot4;
-            break;
-        }
-
+        EffectSlot *slot = getSlot(i);
         if (slot) {
             p.effectTypes[i] = static_cast<int8_t>(slot->currentEffect);
             p.effectValues[i] = static_cast<int8_t>(slot->currentValue);
         }
     }
-
     for (int i = 0; i < NUM_TONE_BANDS; i++) {
         p.toneGains[i] = static_cast<int8_t>(toneGains[i]);
     }
-
     return p;
 }
